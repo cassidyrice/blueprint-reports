@@ -16,7 +16,7 @@ from datetime import date, datetime
 # ---------------------------------------------------------------------------
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_FILE = os.path.join(SCRIPT_DIR, 'card_blueprints_data.min.json')
+DATA_FILE = os.path.join(SCRIPT_DIR, 'card_blueprints_data.json')
 _DATA = None
 
 def init_data():
@@ -231,6 +231,20 @@ def calculate_blueprint(month, day, year, target_date=None, anchor_card=None):
         planet_pos = PLANET_NAMES.index(r_planet)
         prc = lp_y1_bc[planet_pos + 2] if len(lp_y1_bc) > planet_pos + 2 else "?"
 
+    # Purpose from card descriptions
+    desc = get_card_descriptions()
+    anchor_desc = desc.get(anchor, {})
+    purpose = anchor_desc.get("life_direction", "")
+
+    # Long Range as structured dict
+    lr_planet = PLANET_NAMES[lr_pos] if lr_pos < len(PLANET_NAMES) else "?"
+    long_range = {
+        "card": lr_card,
+        "cycle": lr_cycle,
+        "spread": int(lr_spread_key),
+        "planet": lr_planet
+    }
+
     return {
         "archetype": {
             "anchor": anchor,
@@ -240,6 +254,7 @@ def calculate_blueprint(month, day, year, target_date=None, anchor_card=None):
             "sun_sign": sign,
             "ruling_planet": r_planet,
             "domain": domain,
+            "purpose": purpose,
         },
         "timing": {
             "birth_date": f"{month}/{day}/{year}",
@@ -249,6 +264,8 @@ def calculate_blueprint(month, day, year, target_date=None, anchor_card=None):
             "crown_line": current_spread["crown"]
         },
         "yearly_spread": {
+            "anchor": anchor,
+            "grid_position": grid_pos,
             "periods": period_cards, # Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Neptune, Pluto, Result
             "pluto": period_cards[7] if len(period_cards) > 7 else "?",
             "result": period_cards[8] if len(period_cards) > 8 else "?"
@@ -258,7 +275,7 @@ def calculate_blueprint(month, day, year, target_date=None, anchor_card=None):
             "day_in_year": days_in + 1,
             "card": period_cards[p_idx] if p_idx < len(period_cards) else "?"
         },
-        "long_range": lr_card,
+        "long_range": long_range,
         "environment_displacement": {
             "environment": env,
             "displacement": disp
